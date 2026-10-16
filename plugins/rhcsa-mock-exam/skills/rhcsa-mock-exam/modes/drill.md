@@ -35,10 +35,16 @@ Never invent misses. With no source, ask for the grader output.
 - A **mini grader** as a file: write only its checks and build it with
   `scripts/build_grader.sh` (`PAPER="Retry pack <n>"`), `need` per
   requirement, `requires` where tasks stack.
-- **No answers up front.** Give the key for a task only after the user has
-  attempted it, or asks.
+- **No answers up front, and no hints that give the method away.** Don't
+  say which commands, services, files or options a task needs, or how it will
+  be checked, and don't label tasks with the miss they target (a label like
+  "started but not enabled" is the answer). One intro line ("aimed at your
+  misses from <paper>") is enough; map tasks to misses when grading. Give the
+  key for a task only after the user has attempted it, or asks.
 - Tell them: do the tasks, reboot, run `bash <grader> --all` from node1,
-  paste the output.
+  paste the output. If they asked for no files (so no grader), ask them to
+  paste what they ran instead, and don't list check commands: those reveal
+  what each task needs.
 
 ## After the attempt
 

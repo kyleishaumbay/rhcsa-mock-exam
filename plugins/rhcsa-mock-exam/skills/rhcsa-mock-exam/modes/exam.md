@@ -36,6 +36,11 @@ repository configuration next, then the rest mixed — not grouped by topic.
 
 ## Coverage
 
+**The default is a full paper** covering the whole syllabus, even if earlier
+papers in the conversation were narrower. Make a topic-focused paper only
+when the user names the topics, and say "topic-focused, not a full EX200
+paper" in its preamble.
+
 18–22 tasks for a full exam across the ten RHEL 9 categories in
 `objectives.md`, no category over a quarter of the paper. Always include:
 
@@ -63,6 +68,27 @@ repository configuration next, then the rest mixed — not grouped by topic.
   optionally a Containerfile build or an image inspect
 - RHEL 10 papers instead: Flatpak remote + install in a stated scope, a
   systemd timer; no containers
+
+**Rotate the rest of the syllabus.** On top of the list above, each paper
+adds at least four of these, chosen so consecutive papers differ (check
+`modes/progress.md` for papers already sat):
+
+- a time-service client (chrony pointed at a given server)
+- key-based SSH for a named user between the nodes
+- hard and soft links
+- copying files securely between the nodes
+- SELinux mode set persistently
+- a boot target entered manually, or the default target changed
+- an archive in a stated format (tar with gzip, bzip2 or xz)
+- a resource-hungry process to find and kill
+- ugo/rwx permissions on a shared file
+- a package installed from a local RPM file
+- a Containerfile build, or a registry image inspected with skopeo
+
+Within three papers, every checkable RHEL 9 objective has appeared at least
+once. Objectives no command can check (shell prompt, documentation, editing
+files, normal reboot) are exercised by the other tasks. The key opens with a
+coverage table mapping each task to its objective.
 
 ## Rules
 

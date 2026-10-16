@@ -96,6 +96,8 @@ plugins/rhcsa-mock-exam/
     scripts/build_grader.sh              builds a grader from a paper's checks file + the runtime
 examples/mock-exam-1/                    a full, lab-verified paper + key + grader (and how it was built)
 tools/package-skill.sh                   builds the claude.ai upload zip
+tools/check_mock_output.py               checks a generated exam against the skill's rules (28 checks)
+plugins/rhcsa-mock-exam/evals/           eval suite for `claude plugin eval` (see its README)
 ```
 
 ## Ground rules

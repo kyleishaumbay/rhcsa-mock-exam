@@ -9,7 +9,7 @@
     {
       "name": "rhcsa-mock-exam",
       "description": "Generate timed two-node RHCSA mock exams with a separate answer key and a read-only bash grader that prints a Red Hat-style score report; write keys for practice tests you supply; grade attempts; coach individual objectives. RHEL 9 by default, RHEL 10 on request.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "author": {
         "name": "kyleishaumbay"
       },

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.0 — 2026-10-16
+
+- **Full syllabus by default.** A mock exam is always a full 18-22 task paper across all ten RHEL 9
+  objective categories unless the user names topics, and a topic-focused paper says so. Each paper
+  also rotates in at least four less common objectives (chrony client, SSH keys, links, scp, SELinux
+  mode, archive formats, local RPMs, Containerfile/skopeo), so three papers cover every checkable objective.
+- **Retry packs give nothing away:** no per-task "targets" labels, no method hints, and no check
+  commands when there is no grader file.
+- **Eval suite** (`plugins/rhcsa-mock-exam/evals/`): 6 light chat cases plus one full-exam case, runnable
+  with `claude plugin eval`.
+- **`tools/check_mock_output.py`**: 28 deterministic rules for a generated exam, covering syllabus
+  coverage, task count, no answers in the paper, the grader build and `bash -n`.
+
 ## 1.1.0 — 2026-10-16
 
 - **Grader reports every failure in a task.** Checks are written with `need`, and `must … || return`
