@@ -2,12 +2,12 @@
 
 ## Output
 
-Three files (`<v>` is `9` by default, `10` if switched):
+Three files:
 
-- `RHCSA<v>_Mock_Exam_<n>.docx` — the paper. No answers anywhere in it.
-- `RHCSA<v>_Mock_Exam_<n>_Key.docx` — the answer key, a separate file so
+- `RHCSA9_Mock_Exam_<n>.docx` — the paper. No answers anywhere in it.
+- `RHCSA9_Mock_Exam_<n>_Key.docx` — the answer key, a separate file so
   the exam can be sat honestly.
-- `rhcsa<v>-mock-<n>-grade.sh` — the grader (written per `modes/grade.md`).
+- `rhcsa9-mock-<n>-grade.sh` — the grader (written per `modes/grade.md`).
 
 ## The paper
 
@@ -66,12 +66,9 @@ paper" in its preamble.
 - containers — as a named rootless user: pull from the lab registry,
   persistent volume, published port, started by systemd at boot (linger);
   optionally a Containerfile build or an image inspect
-- RHEL 10 papers instead: Flatpak remote + install in a stated scope, a
-  systemd timer; no containers
 
 **Rotate the rest of the syllabus.** On top of the list above, each paper
-adds at least four of these, chosen so consecutive papers differ (check
-`modes/progress.md` for papers already sat):
+adds at least four of these, varied:
 
 - a time-service client (chrony pointed at a given server)
 - key-based SSH for a named user between the nodes
@@ -85,8 +82,7 @@ adds at least four of these, chosen so consecutive papers differ (check
 - a package installed from a local RPM file
 - a Containerfile build, or a registry image inspected with skopeo
 
-Within three papers, every checkable RHEL 9 objective has appeared at least
-once. Objectives no command can check (shell prompt, documentation, editing
+Objectives no command can check (shell prompt, documentation, editing
 files, normal reboot) are exercised by the other tasks. The key opens with a
 coverage table mapping each task to its objective.
 
@@ -104,8 +100,8 @@ coverage table mapping each task to its objective.
   the method open. Never prescribe the tool.
 - No task whose only correct answer is a trick. Sizes that round to extents
   are given as ranges or in extents.
-- Nothing off the objective list for the chosen version: no Flatpak on a
-  RHEL 9 paper, no Stratis, no VDO.
+- Nothing off the RHEL 9 objective list: no Stratis, no VDO.
+- Repositories use `gpgcheck=0`. Never require GPG checking or a key.
 - **Pick values that make the task real on this lab.** A "non-default port"
   must not already carry the SELinux label (check `semanage port -l`; on
   RHEL 9, 8080 is already `http_cache_port_t`). A service to enable must not

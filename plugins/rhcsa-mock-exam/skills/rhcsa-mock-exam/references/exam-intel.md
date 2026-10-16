@@ -20,23 +20,21 @@ exams behave like the real one and to coach.
 
 ## The score report
 
-Candidates receive a per-objective percentage, not per-task results. One
-real report, shared publicly by a passing candidate. Its "Manage software"
-line shows it was a RHEL 10 sitting; a **RHEL 9 report has no Manage
-software line and adds "Manage containers"** — the grader prints whichever
-categories the paper used:
+Candidates receive a per-objective percentage, not per-task results: a
+score line, then one percentage per RHEL 9 objective category. The grader
+prints the categories the paper used, in this shape:
 
-    Passing score: 210    Your score: 237    Result: PASS
-    Understand and use essential tools: 82%
-    Manage software: 100%
-    Create simple shell scripts: 100%
-    Operate running systems: 100%
-    Configure local storage: 75%
-    Create and configure file systems: 67%
-    Deploy, configure and maintain systems: 67%
-    Manage basic networking: 100%
-    Manage users and groups: 100%
-    Manage security: 100%
+    Passing score: 210    Your score: <n>    Result: PASS|FAIL
+    Understand and use essential tools: <n>%
+    Create simple shell scripts: <n>%
+    Operate running systems: <n>%
+    Configure local storage: <n>%
+    Create and configure file systems: <n>%
+    Deploy, configure and maintain systems: <n>%
+    Manage basic networking: <n>%
+    Manage users and groups: <n>%
+    Manage security: <n>%
+    Manage containers: <n>%
 
 The grader library reproduces this shape so mock results read like the real
 thing. When grading (Mode C), always show this breakdown.
@@ -72,9 +70,6 @@ Forum posts commonly make three claims. Reconciled for RHEL 9:
   until the `console=` arguments were deleted from the kernel line; others
   in the thread got in with `init=/bin/sh`. One exam-taker's report there
   says rd.break dropped them to an emergency-mode password prompt.
-- "rd.break does not work in v10" — a RHEL 10 thread (Jan 2026) reports the
-  rd.break shell missing `chroot`. Irrelevant on RHEL 9, but it explains the
-  forum noise.
 - Teach for RHEL 9: **rd.break primary, after deleting console=/rhgb/quiet;
   init=/bin/bash as a rehearsed fallback.** Always `touch /.autorelabel`.
 
@@ -100,8 +95,7 @@ Forum posts commonly make three claims. Reconciled for RHEL 9:
 - Know fstab format well enough to write it without looking; validate with
   `findmnt --verify` before any reboot.
 - "Know cron and systemd timers", "password expiry", "find", "grep to a
-  file", "dnf config-manager to add a repo" (Flatpak tips in the same threads
-  are RHEL 10 only) — all recur.
+  file", "dnf config-manager to add a repo" — all recur.
 
 ## Claims to correct when they come up
 
@@ -109,7 +103,6 @@ Forum posts commonly make three claims. Reconciled for RHEL 9:
 |---|---|
 | For autofs, add firewall services nfs, mountd, rpc-bind | Those open an NFS **server**. RHCSA is the client side; the client needs no inbound rule. Only do it if a task makes the node a server. |
 | Enable root password SSH login so you can jump between nodes | Allowed but it is unrequested config. Prefer ssh as a normal user + sudo, or the console. Never do it if any task sets an sshd policy. |
-| Containers are gone from RHCSA | Only from the RHEL 10 version. On RHEL 9 they are a full graded section. |
 | rd.break doesn't work | On RHEL 9 it does once console= args are removed; keep init=/bin/bash as the fallback. |
 | `setenforce 0` to get a service working | Graded state is enforcing unless told otherwise; fix the label, port or boolean. |
 | Dumps "match the real exam" | NDA-covered items; dumps are frequently wrong. Never use them. |

@@ -7,7 +7,7 @@ bash, run as root. It ships as one file: `scripts/grader_lib.sh` followed by
 the paper's checks.
 
 - **Write only the checks file**, then build: `bash scripts/build_grader.sh
-  <checks.sh> rhcsa<v>-mock-<n>-grade.sh` (prepends the library, makes it
+  <checks.sh> rhcsa9-mock-<n>-grade.sh` (prepends the library, makes it
   executable, runs `bash -n`). Never retype the library; that costs tokens
   and invites drift. Only when no shell is available, paste the library
   above the checks.
@@ -24,8 +24,7 @@ the paper's checks.
   it on each node instead.
 - The library prints the reboot reminder, every failed check with the command
   it ran, gate and dependency notes, the per-objective percentages in Red
-  Hat's score-report shape, and a final `SUMMARY|…` line for progress
-  tracking (`modes/progress.md`).
+  Hat's score-report shape.
 - **Read-only. Always.** No `rm`, no writes, no config changes, no service
   restarts, no mounts. It observes and reports. A grader that repairs the
   system destroys the evidence.
@@ -37,8 +36,7 @@ the paper's checks.
 - Check **persisted** state, not just running state. Use the library's
   pairs: `svc_persisted`, `mount_persisted`, `fw_persisted`. SELinux
   contexts need `semanage fcontext -l` as well as `ls -Z`; booleans need
-  `semanage boolean -l -C`; (RHEL 10) Flatpak installs are checked in the
-  scope the task named; rootless container checks run as that user
+  `semanage boolean -l -C`; rootless container checks run as that user
   (`runuser -l <user> -c 'XDG_RUNTIME_DIR=/run/user/<uid> systemctl --user is-active <unit>'`)
   and also check `loginctl show-user <user> -p Linger`.
 - **Read the loaded configuration, not one file.** Use `automount -m`
@@ -73,9 +71,8 @@ node), or pastes commands:
    explaining three later failures is one lesson, not four.
 4. If the user only attempted some tasks, ask which (once), and leave the
    unattempted ones out of the table and the lessons.
-5. End with two one-line offers: a retry pack for the misses
-   (`modes/drill.md`), and recording the attempt (`modes/progress.md`). In
-   Claude Code, record it without asking if a progress file already exists.
+
+Stop there: no follow-up offers.
 
 ## Rules
 

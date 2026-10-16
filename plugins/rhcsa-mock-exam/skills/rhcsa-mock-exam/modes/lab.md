@@ -1,4 +1,4 @@
-# Mode G — prepare the lab (Claude Code on the VM host)
+# Mode E — prepare the lab (Claude Code on the VM host)
 
 For "get my VMs ready for the exam", "set up the lab", or "grade my VMs for
 me". Only possible where Claude has a shell on the machine that runs the
@@ -59,9 +59,8 @@ instead.
 8. **Hand over** the paper, key and grader, plus: "To start: power on node2,
    then node1. To retake: restore `mock-<n>-start` on every node."
 
-## Grading for the user
+## Grading the VMs (when asked)
 
-After the attempt, offer to grade directly: ask before rebooting, reboot
-server nodes first, copy the grader to node1, run `bash <grader> --all`,
-and continue with `modes/grade.md` and `modes/progress.md`. Leave the
-attempt in place afterwards; restore only if the user asks.
+Ask before rebooting, reboot server nodes first, copy the grader to node1,
+run `bash <grader> --all`, and report it per `modes/grade.md`. Leave the
+attempt in place; restore only if the user asks.

@@ -24,7 +24,6 @@
 
 declare -A CAT_NAME=(
   [TOOLS]="Understand and use essential tools"
-  [SW]="Manage software (RHEL 10)"
   [SH]="Create simple shell scripts"
   [OPS]="Operate running systems"
   [STOR]="Configure local storage"
@@ -35,7 +34,7 @@ declare -A CAT_NAME=(
   [SEC]="Manage security"
   [CON]="Manage containers"
 )
-CAT_ORDER=(TOOLS SW SH OPS STOR FS DEP NET USR SEC CON)
+CAT_ORDER=(TOOLS SH OPS STOR FS DEP NET USR SEC CON)
 PASS_MARK=${PASS_MARK:-210}   # out of 300, as candidates report it
 PAPER=${PAPER:-"RHCSA mock exam"}
 
@@ -197,11 +196,9 @@ report() {   # Red Hat-style per-objective breakdown; equal weight per task, sca
   done
   scope="this node"; (( ${#REMOTE_OK[@]} )) && scope="all nodes"
   echo; echo "Performance on exam objectives ($scope):"
-  local cats=()
   for c in "${CAT_ORDER[@]}"; do
     [[ -n ${ct[$c]} ]] || continue
     printf '  %-45s %3d%%\n' "${CAT_NAME[$c]}:" $(( 100 * ${cp[$c]:-0} / ${ct[$c]} ))
-    cats+=("$c=$(( 100 * ${cp[$c]:-0} / ${ct[$c]} ))")
   done
   (( graded == 0 )) && { echo "No tasks graded."; return; }
   local score=$(( 300 * passed / graded ))
@@ -209,7 +206,4 @@ report() {   # Red Hat-style per-objective breakdown; equal weight per task, sca
   local failed=(); for t in "${TASKS[@]}"; do [[ ${T_RES[$t]} == FAIL ]] && failed+=("$t"); done
   echo "Failed tasks: ${failed[*]:-none}"
   echo "Real exam weights are not published; this is a readiness signal, not a prediction."
-  # one line for progress tracking
-  printf 'SUMMARY|%s|%s|%s|%s/300|graded=%s|failed=%s|%s\n' "$(date +%F)" "$PAPER" "$scope" "$score" \
-    "$graded" "$(IFS=,; echo "${failed[*]}")" "$(IFS=,; echo "${cats[*]}")"
 }

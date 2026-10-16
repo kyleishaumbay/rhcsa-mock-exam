@@ -26,17 +26,17 @@ convenience, label it and say it is not graded.
 
 ## Drilling an objective
 
-Give 3–5 short exam-voice tasks for one objective, one at a time. The user
-replies with commands; grade each by the rules in `modes/grade.md`, then the next. Escalate
-difficulty. Finish with the pattern of misses.
+Give 3–5 short exam-voice tasks for that objective, with new values and no
+hints. If the user replies with commands, grade them by the rules in
+`modes/grade.md`.
 
 ## Command lookup
 
 Answer from `cheatsheet.md`: the row, adapted to the user's values. For the
-whole sheet, deliver the `.docx` build of it (see Build) rather than
-pasting it.
+whole sheet, deliver it as a `.docx` (build rules: `modes/exam.md`, "Build")
+rather than pasting it.
 
 ## Resources
 
-Answer from `resources.md`, filtered to the user's exam version, in one
+Answer from `resources.md` in one
 table. Official sources first. Say what each is for and its caution.

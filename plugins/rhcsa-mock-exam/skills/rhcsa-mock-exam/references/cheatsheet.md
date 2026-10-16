@@ -1,6 +1,6 @@
 # RHCSA 9 (EX200) per-objective command reference
 
-Objective wording is Red Hat's RHEL 9 list (68 objectives), verbatim. Used by Mode A (keys), Mode C (grading) and Mode D (coaching) on RHEL 9 papers. Every row is: what to run, how to prove it, and the trap that loses the mark. For a RHEL 10 paper, see the RHEL 10 delta in objectives.md: drop the containers section, add Flatpak (flatpak remote-add --if-not-exists [--user], flatpak install [--user] <remote> <app.id>).
+Objective wording is Red Hat's RHEL 9 list (68 objectives), verbatim. Used by Mode A (keys), Mode C (grading) and Mode D (coaching) on RHEL 9 papers. Every row is: what to run, how to prove it, and the trap that loses the mark.
 
 ## Exam-day runbook
 
@@ -600,7 +600,7 @@ timedatectl
 name=BaseOS
 baseurl=http://repo.lab.example.com/BaseOS
 enabled=1
-gpgcheck=0          # or gpgkey= if a key is given
+gpgcheck=0          # the default for ISO and lab repos
 [AppStream]  ...same, /AppStream
 # or: dnf config-manager --add-repo <url>
 # verify

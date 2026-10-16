@@ -10,8 +10,7 @@ a repo lab, a forum task list. Produce the key.
 - **Flag bad tasks rather than answering them straight.** Specifically:
   dated material (`ntpd` for `chronyd`, `ifcfg-` files for `nmcli`
   keyfiles, `iptables` for firewalld, `yum` for `dnf`, Stratis or VDO),
-  tasks off the chosen version's objectives (**containers on a RHEL 10
-  target, Flatpak on a RHEL 9 target**), tasks ambiguous enough that two
+  tasks off the RHEL 9 objectives, tasks ambiguous enough that two
   different correct answers exist, and tasks that cannot be verified.
 - Book errata: where a book's own solution is wrong or version-dated, say
   so plainly and give the correct one — the user is also reading the book.
@@ -22,4 +21,4 @@ a repo lab, a forum task list. Produce the key.
   objectives instead. Do not lecture beyond that, and do not refuse to
   discuss the underlying skills.
 - Deliver as a doc when the test is long, in chat when it is a handful of
-  tasks. Offer a grader for it (`modes/grade.md`) when the tasks are checkable.
+  tasks. Build a grader for it (`modes/grade.md`) only if asked.

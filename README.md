@@ -4,7 +4,7 @@ Hands-on practice for the **Red Hat Certified System Administrator (EX200)** exa
 EX200 has no questions, only work on live systems, graded by scripts after a reboot. This skill
 practises it that way.
 
-**RHEL 9 by default.** Ask for RHEL 10 and it switches syllabus: no containers, Flatpak added.
+**RHEL 9 only.** Every task, key and check follows the RHEL 9 EX200 objectives, containers included.
 
 ## What it does
 
@@ -13,10 +13,8 @@ practises it that way.
 | **Mock exam** | "Make me a full RHCSA mock exam" · "a practice exam on LVM, NFS and Apache" | The paper (`.docx`, no answers), a separate answer key (`.docx`), and a grader script (`.sh`) |
 | **Answer key for your test** | "Here are the practice tasks from my book — write the key" | Commands, proof and persistence checks per task. Outdated or off-syllabus tasks are flagged. |
 | **Grading** | Paste the grader output, or your commands | A Red Hat-style per-objective score, a table of what failed and why, and the root cause behind repeated misses |
-| **Retry pack** | "Give me more practice on what I got wrong" | 4–8 new tasks aimed at your misses and the traps behind them, with new values each time, plus a mini grader |
-| **Progress** | "How am I doing?" · "Am I ready?" | Your attempts over time, per-objective trends, weakest areas, and what to do next |
-| **Coaching** | "How do I attack task 7?" · "Drill me on autofs" · "Command for SELinux port labels?" | Step-by-step reasoning, drills graded one at a time, cheat-sheet lookups, study resources |
-| **Prepare the lab** (Claude Code on the VM host) | "Get my VMs ready for the exam" · "Grade my VMs for me" | VirtualBox/KVM VMs found, checked, seeded and snapshotted, so you just start the exam. Afterwards, it grades them directly. |
+| **Coaching** | "How do I attack task 7?" · "Drill me on autofs" · "Command for SELinux port labels?" | Step-by-step reasoning, practice tasks for one objective, cheat-sheet lookups, study resources |
+| **Prepare the lab** (Claude Code on the VM host) | "Get my VMs ready for the exam" · "Grade my VMs for me" | VirtualBox/KVM VMs found, checked, seeded and snapshotted, so you just start the exam. Ask, and it grades them directly. |
 
 **The grader** is plain bash, run as root after rebooting every node. It is **read-only**: it never
 changes, mounts or restarts anything. It checks persisted state, accepts any correct method, and lists
@@ -36,8 +34,8 @@ Performance on exam objectives (all nodes):
 Score (all nodes, equal weights): 237 / 300   pass mark 210
 ```
 
-**Lightweight.** About 340 tokens are always loaded (the skill's description). Each use loads a
-~1.1k-token router plus only the files that mode needs: about 0.4–1.8k tokens per mode, with the
+**Lightweight.** About 300 tokens are always loaded (the skill's description). Each use loads a
+~1k-token router plus only the files that mode needs: about 0.4–1.8k tokens per mode, with the
 big cheat sheet looked up by section. Graders are assembled by a build script, so Claude never
 retypes the grader library.
 
@@ -74,10 +72,6 @@ work for most drills, but sit your final mocks on RHEL.
 Tell Claude your lab (hostnames, IPs, spare disks, package source) when you ask for an exam, and the
 tasks and grader are written to match it.
 
-Want to see the output first? [`examples/mock-exam-1`](examples/mock-exam-1) is a complete 21-task
-paper with its key and grader. It scored 0/300 on an untouched two-node lab, and 300/300 after the
-key was applied and both nodes rebooted.
-
 ## Repository layout
 
 ```
@@ -85,19 +79,18 @@ key was applied and both nodes rebooted.
 plugins/rhcsa-mock-exam/
   .claude-plugin/plugin.json             plugin manifest
   skills/rhcsa-mock-exam/
-    SKILL.md                             router: picks the mode, shared rules (~1.1k tokens)
+    SKILL.md                             router: picks the mode, shared rules (~1k tokens)
     modes/*.md                           one file per mode, loaded only when that mode runs
-    references/objectives.md             EX200 objectives (RHEL 9, RHEL 10 delta), grader categories
+    references/objectives.md             EX200 objectives (RHEL 9), grader categories
     references/exam-intel.md             how the real exam and grader behave; common forum myths corrected
     references/cheatsheet.md             per-objective: do it / prove it / trap
     references/lab-setup.md              practice lab that behaves like the exam
     references/resources.md              books, repos and courses, with cautions
     scripts/grader_lib.sh                grader runtime: need/must checks, --all across nodes, score report
     scripts/build_grader.sh              builds a grader from a paper's checks file + the runtime
-examples/mock-exam-1/                    a full, lab-verified paper + key + grader (and how it was built)
+exams/                                   practice exams saved on request (.docx paper + key, grader per mock)
 tools/package-skill.sh                   builds the claude.ai upload zip
-tools/check_mock_output.py               checks a generated exam against the skill's rules (28 checks)
-plugins/rhcsa-mock-exam/evals/           eval suite for `claude plugin eval` (see its README)
+tools/check_mock_output.py               checks a generated exam against the skill's rules (27 checks)
 ```
 
 ## Ground rules

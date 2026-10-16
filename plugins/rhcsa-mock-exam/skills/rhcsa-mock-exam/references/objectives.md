@@ -1,12 +1,10 @@
 # EX200 objectives
 
-**Default target: RHEL 9** — the default exam version for this skill. Wording below is Red
-Hat's RHEL 9 list (68 objectives, as published from February 2023 and
-reproduced in Ghori's RHEL 9 guide). Red Hat's live EX200 page now shows
-the RHEL 10 list; the RHEL 9 version remains bookable until Red Hat retires
-it — the "Certification Exam Objectives by Version" PDF
-(training-lms.redhat.com) has the dates. The code in brackets is the grader
-category (`scripts/grader_lib.sh`).
+**Target: RHEL 9.** Wording below is Red Hat's RHEL 9 list (68 objectives,
+as published from February 2023 and reproduced in Ghori's RHEL 9 guide).
+The "Certification Exam Objectives by Version" PDF
+(training-lms.redhat.com) has the RHEL 9 version's booking dates. The code
+in brackets is the grader category (`scripts/grader_lib.sh`).
 
 The rule every task and check is built on: "As with all Red Hat
 performance-based exams, configurations must persist after reboot without
@@ -104,27 +102,14 @@ intervention."
 
 ### RHEL 9 notes for task writing
 
-- There is no "Manage software" section on RHEL 9: repository access and
-  package installs are **DEP** tasks.
+- Repository access and package installs are **DEP** tasks.
 - systemd timers are not named ("at and cron"). A timer task is fair only as
   an alternative the key mentions; never make a timer the only correct
   answer on a RHEL 9 paper.
-- Ghori's RHEL 9 guide lists 68 objectives; if the user's copy of the Red
-  Hat page or version PDF differs, theirs wins.
+- Ghori's RHEL 9 guide lists 68 objectives; if the user's copy of Red Hat's
+  RHEL 9 objectives differs, theirs wins.
 
-## RHEL 10 — only if the user switches versions
+## Not on the exam
 
-Red Hat's current EX200 page (RHEL 10) differs from RHEL 9 by:
-
-- **removing Manage containers** entirely;
-- **adding a Manage software [SW] section**: Configure access to RPM
-  repositories · Install and remove RPM software packages · Configure access
-  to Flatpak repositories · Install and remove Flatpak software packages;
-- scheduling becomes "at, cron and systemd timer units";
-- partitions on "GPT disks" only; tar objective drops `star`;
-- no separate set-GID or SELinux-policy-violation lines;
-- "Configure privileged access" replaces "Configure superuser access";
-  "Red Hat Content Delivery Network" replaces "Red Hat Network".
-
-Neither version includes Stratis or VDO; anything teaching them is RHEL 8
+Stratis and VDO are not RHEL 9 objectives; anything teaching them is RHEL 8
 material.

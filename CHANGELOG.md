@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.3.0 — 2026-10-16
+
+- **RHEL 9 only.** Removed the exam-version switch, the other version's objective list, the `SW`
+  grader category, its eval case and the checker's `--rhel` flag.
+- **Resources re-vetted for RHEL 9:** added Sander van Vugt's rhcsa9 repo and RHEL 9 video course,
+  RedHatRanger/rhcsa9vagrant and the RHEL 9 documentation guides; dropped a simulator that is not
+  RHEL 9 and an aggregator that links to dumps.
+- **One request, one result.** Removed the retry-pack and progress-tracking modes (`modes/drill.md`,
+  `modes/progress.md`), mode chaining and follow-up offers, the grader's `SUMMARY` line, and the
+  three-paper rotation promise. Five modes remain: mock exam, key, grading, coaching, lab prep.
+- Sample exam (`examples/mock-exam-1`) and the eval suite removed.
+- Practice exams saved on request now live in `exams/`, outside the skill package.
+
 ## 1.2.0 — 2026-10-16
 
 - **Full syllabus by default.** A mock exam is always a full 18-22 task paper across all ten RHEL 9

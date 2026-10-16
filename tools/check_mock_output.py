@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Check a generated RHCSA mock exam (paper .docx, key .docx, grader .sh) against the
-skill's rules. Usage: python3 tools/check_mock_output.py <folder> [--rhel 9|10]
+skill's rules. Usage: python3 tools/check_mock_output.py <folder>
 Prints PASS/FAIL per rule; exit status 1 if any rule fails. Needs only python3 and bash."""
 import argparse, glob, os, re, subprocess, sys, zipfile
 
 ap = argparse.ArgumentParser()
 ap.add_argument("folder")
-ap.add_argument("--rhel", default="9", choices=["9", "10"])
 a = ap.parse_args()
 os.chdir(a.folder)
 
@@ -52,8 +51,8 @@ rule("two nodes used", {"node1", "node2"} <= nodes, ", ".join(sorted(nodes)))
 
 # syllabus coverage
 cats = {t[1] for t in tasks}
-want = {"TOOLS", "SH", "OPS", "STOR", "FS", "DEP", "NET", "USR", "SEC"} | ({"CON"} if a.rhel == "9" else {"SW"})
-rule(f"all {len(want)} RHEL {a.rhel} objective categories present", want <= cats, "missing: " + ",".join(sorted(want - cats)) if want - cats else "")
+want = {"TOOLS", "SH", "OPS", "STOR", "FS", "DEP", "NET", "USR", "SEC", "CON"}
+rule(f"all {len(want)} RHEL 9 objective categories present", want <= cats, "missing: " + ",".join(sorted(want - cats)) if want - cats else "")
 biggest = max((sum(1 for t in tasks if t[1] == c) for c in cats), default=0)
 rule("no category over a quarter of the paper", biggest <= max(1, n // 4) + 1, f"largest category has {biggest}")
 low = tasks_text.lower()
@@ -68,17 +67,10 @@ must_have = {
     "firewall": r"firewall",
     "scheduled job (cron/at)": r"\bcron|\bat\b.*job|every (day|hour|minute)|schedul",
     "shell script": r"script",
+    "rootless container with systemd": r"container",
 }
-if a.rhel == "9":
-    must_have["rootless container with systemd"] = r"container"
-else:
-    must_have["flatpak"] = r"flatpak"
 for label, rx in must_have.items():
     rule(f"paper covers: {label}", bool(re.search(rx, low)))
-if a.rhel == "9":
-    rule("no Flatpak on a RHEL 9 paper", "flatpak" not in low)
-else:
-    rule("no containers on a RHEL 10 paper", not re.search(r"podman|container", low))
 rule("no Stratis/VDO", not re.search(r"stratis|\bvdo\b", low + key.lower()))
 
 # honesty of the paper: no answers in it
