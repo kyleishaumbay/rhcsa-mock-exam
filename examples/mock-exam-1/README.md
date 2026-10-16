@@ -35,8 +35,9 @@ next reboot, a `/webfiles` label not written to policy, and autofs started but n
 Reboot node2, then node1. Then, as root on node1:
 
 ```
-bash rhcsa9-mock-1-grade.sh
-scp rhcsa9-mock-1-grade.sh node2:/root/ && ssh node2 bash /root/rhcsa9-mock-1-grade.sh
+bash rhcsa9-mock-1-grade.sh --all      # grades node1, then node2 over ssh: one combined report
 ```
+
+No root ssh from node1 to node2? Copy the grader to each node and run it there without `--all`.
 
 Paste both outputs to Claude with this skill installed for a task-by-task explanation.

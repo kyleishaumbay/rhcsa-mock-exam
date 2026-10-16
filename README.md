@@ -13,23 +13,33 @@ practises it that way.
 | **Mock exam** | "Make me a full RHCSA mock exam" · "a practice exam on LVM, NFS and Apache" | The paper (`.docx`, no answers), a separate answer key (`.docx`), and a grader script (`.sh`) |
 | **Answer key for your test** | "Here are the practice tasks from my book — write the key" | Commands, proof and persistence checks per task. Outdated or off-syllabus tasks are flagged. |
 | **Grading** | Paste the grader output, or your commands | A Red Hat-style per-objective score, a table of what failed and why, and the root cause behind repeated misses |
+| **Retry pack** | "Give me more practice on what I got wrong" | 4–8 new tasks aimed at your misses and the traps behind them, with new values each time, plus a mini grader |
+| **Progress** | "How am I doing?" · "Am I ready?" | Your attempts over time, per-objective trends, weakest areas, and what to do next |
 | **Coaching** | "How do I attack task 7?" · "Drill me on autofs" · "Command for SELinux port labels?" | Step-by-step reasoning, drills graded one at a time, cheat-sheet lookups, study resources |
+| **Prepare the lab** (Claude Code on the VM host) | "Get my VMs ready for the exam" · "Grade my VMs for me" | VirtualBox/KVM VMs found, checked, seeded and snapshotted, so you just start the exam. Afterwards, it grades them directly. |
 
-**The grader** is plain bash, run as root on each node after a reboot. It is **read-only**: it never
-changes, mounts or restarts anything. It checks persisted state, accepts any correct method, and
-prints `PASS`/`FAIL` per task with the exact check that failed, plus a score like the real report:
+**The grader** is plain bash, run as root after rebooting every node. It is **read-only**: it never
+changes, mounts or restarts anything. It checks persisted state, accepts any correct method, and lists
+**every** failed check in a task. Run it once from node1 with `--all` to grade all nodes over ssh in a
+single report:
 
 ```
-FAIL FS    #14  autofs wildcard: /home/users/<user> from node2:/srv/nfs/users/<user>
-           why:   no wildcard '*' key mounting node2:/srv/nfs/users/& (got: '* | -rw node2:/srv/nfs/users&')
-           check: automount -m   (map for /home/users)
+FAIL FS    #14  node1  autofs wildcard: /home/users/<user> from node2:/srv/nfs/users/<user>
+           - why:   no wildcard '*' key mounting node2:/srv/nfs/users/& (got: '* | -rw node2:/srv/nfs/users&')
+             check: automount -m   (map for /home/users)
+           note:  depends on #4 (node1), which also failed — fix that first
 
-Performance on exam objectives (this node):
+Performance on exam objectives (all nodes):
   Configure local storage:                      100%
   Create and configure file systems:             75%
   ...
-Score (this node, equal weights): 237 / 300   pass mark 210
+Score (all nodes, equal weights): 237 / 300   pass mark 210
 ```
+
+**Lightweight.** About 340 tokens are always loaded (the skill's description). Each use loads a
+~1.1k-token router plus only the files that mode needs: about 0.4–1.8k tokens per mode, with the
+big cheat sheet looked up by section. Graders are assembled by a build script, so Claude never
+retypes the grader library.
 
 ## Install
 
@@ -75,13 +85,15 @@ key was applied and both nodes rebooted.
 plugins/rhcsa-mock-exam/
   .claude-plugin/plugin.json             plugin manifest
   skills/rhcsa-mock-exam/
-    SKILL.md                             the skill: four modes and their rules
+    SKILL.md                             router: picks the mode, shared rules (~1.1k tokens)
+    modes/*.md                           one file per mode, loaded only when that mode runs
     references/objectives.md             EX200 objectives (RHEL 9, RHEL 10 delta), grader categories
     references/exam-intel.md             how the real exam and grader behave; common forum myths corrected
     references/cheatsheet.md             per-objective: do it / prove it / trap
     references/lab-setup.md              practice lab that behaves like the exam
     references/resources.md              books, repos and courses, with cautions
-    scripts/grader_lib.sh                shared grader runtime pasted into every generated grader
+    scripts/grader_lib.sh                grader runtime: need/must checks, --all across nodes, score report
+    scripts/build_grader.sh              builds a grader from a paper's checks file + the runtime
 examples/mock-exam-1/                    a full, lab-verified paper + key + grader (and how it was built)
 tools/package-skill.sh                   builds the claude.ai upload zip
 ```
