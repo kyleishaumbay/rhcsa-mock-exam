@@ -40,4 +40,4 @@ bash rhcsa9-mock-1-grade.sh --all      # grades node1, then node2 over ssh: one 
 
 No root ssh from node1 to node2? Copy the grader to each node and run it there without `--all`.
 
-Paste both outputs to Claude with this skill installed for a task-by-task explanation.
+Paste the output (or both outputs, if you ran it per node) to Claude with this skill installed for a task-by-task explanation.
