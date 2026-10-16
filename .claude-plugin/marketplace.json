@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "rhcsa-mock-exam",
+  "description": "RHCSA (EX200) hands-on exam practice for Claude: mock exams, answer keys, read-only graders and coaching.",
+  "owner": {
+    "name": "kyleishaumbay"
+  },
+  "plugins": [
+    {
+      "name": "rhcsa-mock-exam",
+      "description": "Generate timed two-node RHCSA mock exams with a separate answer key and a read-only bash grader that prints a Red Hat-style score report; write keys for practice tests you supply; grade attempts; coach individual objectives. RHEL 9 by default, RHEL 10 on request.",
+      "version": "1.0.0",
+      "author": {
+        "name": "kyleishaumbay"
+      },
+      "source": "./plugins/rhcsa-mock-exam",
+      "category": "learning"
+    }
+  ]
+}

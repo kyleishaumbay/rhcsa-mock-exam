@@ -1,0 +1,9 @@
+{
+  "name": "rhcsa-mock-exam",
+  "version": "1.0.0",
+  "description": "RHCSA (EX200) hands-on exam practice: mock exams, answer keys, read-only graders and coaching. RHEL 9 by default, RHEL 10 on request.",
+  "author": {
+    "name": "kyleishaumbay"
+  },
+  "keywords": ["rhcsa", "ex200", "rhel", "red-hat", "linux", "certification", "exam-prep"]
+}
