@@ -6,5 +6,6 @@ lib=$here/../../plugins/rhcsa-mock-exam/skills/rhcsa-mock-exam/scripts/build_gra
 for n in 1 2; do
   [[ -f $here/mock-$n/checks.sh ]] || continue
   tmp=$(mktemp); cat "$here/helpers.sh" "$here/mock-$n/checks.sh" > "$tmp"
-  bash "$lib" "$tmp" "$here/mock-$n/rhcsa9-mock-$n-grade.sh"; rm -f "$tmp"
+  bash "$lib" "$tmp" "$here/mock-$n/rhcsa9-mock-$n-grade.sh"
+  sed -i "1r $here/usage-$n.txt" "$here/mock-$n/rhcsa9-mock-$n-grade.sh"; rm -f "$tmp"
 done

@@ -91,9 +91,9 @@ t10() {
   need svc_persisted crond
 }
 
-task 11 CON node1 "rootless cafe from a self-built localhost/cafe-web:1.0 (Containerfile, CAFE_ENV=mock2): /srv/cafe -> docroot, port 28282, starts at boot"
+task 11 CON node1 "rootless cafe, owned by barista, from a self-built localhost/cafe-web:1.0 (Containerfile, CAFE_ENV=mock2): /srv/cafe -> docroot, port 28282, starts at boot"
 t11() {
-  must find_cuser cafe || return
+  must use_cuser barista cafe || return
   need expect_ok "test -s ~$CUSER/cafe/Containerfile"
   need expect_match "$(asu 'podman image inspect localhost/cafe-web:1.0 --format "{{.Config.Env}}"')" 'CAFE_ENV=mock2'
   need expect_match "$(asu 'podman inspect cafe --format {{.ImageName}}')" '^localhost/cafe-web:1\.0$'
@@ -167,11 +167,12 @@ t17() {
 }
 requires 17 3
 
-task 18 SEC node2 "gatekeeper exists on node2 and logs in to node1 as gatekeeper by key, no password"
+task 18 SEC node2 "gatekeeper exists on node2 and logs in to workhorse (node1) as gatekeeper by key, no password"
 t18() {
   must expect_ok "id gatekeeper" || return
-  need key_login_ok gatekeeper "$NODE1_IP"
+  need key_login_ok gatekeeper workhorse
 }
+requires 18 22
 
 task 19 SEC node1 "sshd: no password/keyboard-interactive auth, no root login, only group sshlogin allowed"
 t19() {
@@ -185,15 +186,50 @@ t19() {
   need svc_persisted sshd
 }
 
-task 20 FS node1 "autofs: /shares/reports rw and /shares/archive read-only from $NODE2_IP:/exports, not fstab (needs node2 task 5)"
+task 20 FS node1 "autofs: /shares/reports rw and /shares/archive read-only from storage:/exports, not fstab (needs node2 task 5)"
 t20() {
   must expect_ok "rpm -q autofs" || return
   need svc_persisted autofs
-  need autofs_maps_to /shares/reports "$NODE2_IP:/exports/reports"
-  need autofs_maps_to /shares/archive "$NODE2_IP:/exports/archive"
+  need autofs_maps_to /shares/reports "storage(\.lab\.example)?:/exports/reports"
+  need autofs_maps_to /shares/archive "storage(\.lab\.example)?:/exports/archive"
   need autofs_has_opt /shares/archive ro
   need expect_ok "! findmnt --fstab -n /shares/reports && ! findmnt --fstab -n /shares/archive"
 }
-requires 20 3
+requires 20 3 21
+
+task 21 NET node1 "/etc/hosts on node1: storage and storage.lab.example -> node2"
+t21() {
+  need hosts_entry storage "$NODE2_IP"
+  need hosts_entry storage.lab.example "$NODE2_IP"
+}
+
+task 22 NET node2 "/etc/hosts on node2: workhorse and workhorse.lab.example -> node1"
+t22() {
+  need hosts_entry workhorse "$NODE1_IP"
+  need hosts_entry workhorse.lab.example "$NODE1_IP"
+}
+
+task 23 NET node2 "chrony serves time to node1's subnet; at boot; firewall allows NTP"
+t23() {
+  need svc_persisted chronyd
+  need expect_match "grep -hE '^[[:space:]]*allow' /etc/chrony.conf /etc/chrony.d/*.conf 2>/dev/null" 'allow'
+  need fw_has ntp 123/udp
+}
+
+task 24 NET node1 "chrony syncs only from storage (node2); at boot"
+t24() {
+  need svc_persisted chronyd
+  need chrony_only_from "storage|storage\.lab\.example|${NODE2_IP//./\\.}"
+}
+requires 24 21
+
+task 25 SEC node1 "SELinux boolean httpd_can_network_connect on, persistently"
+t25() {
+  need expect_match "getsebool httpd_can_network_connect" '--> on$'
+  need expect_match "semanage boolean -l -C 2>/dev/null | grep -w httpd_can_network_connect" '\(on[[:space:]]*,[[:space:]]*on\)'
+}
+
+task 26 USR node1 "new users get a 45-day maximum password age (login.defs)"
+t26() { need expect "awk '\$1==\"PASS_MAX_DAYS\"{print \$2}' /etc/login.defs" 45; }
 
 run_all; report

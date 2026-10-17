@@ -1,4 +1,8 @@
 #!/bin/bash
+# PH2026B2 Mock 2 grader. Run as root on EACH node, after rebooting both:
+#   NODE1_IP=<node1-IP> NODE2_IP=<node2-IP> bash grade.sh
+# Read-only: it changes nothing. Full instructions: Appendix C of the exam paper.
+# Don't read this file before sitting the exam: the checks give the answers away.
 # grader_lib.sh v2 — shared runtime for generated RHCSA mock-exam graders.
 # A grader ships as ONE file: this library followed by the paper's checks
 # (tools/build_grader.sh does the concatenation, so the library is never retyped).
@@ -202,13 +206,14 @@ report() {   # Red Hat-style per-objective breakdown; equal weight per task, sca
   done
   (( graded == 0 )) && { echo "No tasks graded."; return; }
   local score=$(( 300 * passed / graded ))
-  echo; echo "Score ($scope, equal weights): $score / 300   pass mark $PASS_MARK"
+  echo; echo "Tasks passed ($scope): $passed / $graded"
+  echo "Score ($scope, equal weights): $score / 300   pass mark $PASS_MARK"
   local failed=(); for t in "${TASKS[@]}"; do [[ ${T_RES[$t]} == FAIL ]] && failed+=("$t"); done
   echo "Failed tasks: ${failed[*]:-none}"
   echo "Real exam weights are not published; this is a readiness signal, not a prediction."
 }
 
-# ==== paper checks (tmp.vbdIlVbvNs) ====
+# ==== paper checks (tmp.HFzzT6CGPO) ====
 # PH2026B2 mocks — shared read-only check helpers, prepended to each paper's checks by build.sh
 # ------------------------------------------------------------
 root_pw_is() {   # <password> — compares against root's hash in /etc/shadow
@@ -275,6 +280,12 @@ find_cuser() {        # <container> — the lingering rootless user running it
   done
   _rec "podman ps, as each user in /var/lib/systemd/linger/" "no lingering user has a running container named $1"; return 1
 }
+use_cuser() {         # <user> <container> — the named user exists, lingers and runs that container
+  CUSER=$1
+  expect_ok "id $1" || { _rec "id $1" "user $1 does not exist"; return 1; }
+  runuser -l "$1" -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) podman ps --format "{{.Names}}"' 2>/dev/null | grep -qx "$2" && return 0
+  _rec "$(asu 'podman ps')" "$1 has no running container named $2 (a container run by root does not count)"; return 1
+}
 asu() { echo "runuser -l $CUSER -c 'XDG_RUNTIME_DIR=/run/user/\$(id -u) $1'"; }
 user_unit_for() {     # <container> — its systemd --user service is active and enabled/generated
   local u; u=$(bash -c "$(asu 'systemctl --user list-units --all --type=service --no-legend --plain')" 2>/dev/null | awk '{print $1}' | grep -m1 "$1")
@@ -315,12 +326,26 @@ node_by_ip() {        # which node this is, from its IP (lab hostnames can be an
   [[ -n $NODE ]] && return 0
   ip -4 -o addr 2>/dev/null | grep -q " $NODE1_IP/" && THIS_NODE=node1
   ip -4 -o addr 2>/dev/null | grep -q " $NODE2_IP/" && THIS_NODE=node2
-  return 0
+  [[ $THIS_NODE == node1 || $THIS_NODE == node2 ]] && return 0
+  echo "This machine has neither $NODE1_IP (node1) nor $NODE2_IP (node2)."
+  echo "Run it with your lab's IPs:  NODE1_IP=<node1-IP> NODE2_IP=<node2-IP> bash ${_SELF##*/}"
+  exit 2
 }
 iso_repo_baseos() {   # <mountpoint> — ISO mounted there at boot; a BaseOS repo from it
   need mount_persisted "$1"
   need expect_ok "test -d $1/BaseOS/repodata"
   need expect_match "grep -rhE '^\s*baseurl\s*=' /etc/yum.repos.d/" "file://$1/BaseOS/?\$"
+}
+hosts_entry() {       # <name> <ip> — the name resolves to ip from /etc/hosts (not DNS)
+  expect_ok "grep -Eq '^[[:space:]]*$2[[:space:]](.*[[:space:]])?$1([[:space:]]|\$)' /etc/hosts" \
+    || { _rec "grep '$1' /etc/hosts" "/etc/hosts has no line mapping $1 to $2"; return 1; }
+  expect "getent hosts $1 | awk '{print \$1}' | head -1" "$2"
+}
+chrony_only_from() {  # <regex> — every server/pool line points at a source matching it, and there is one
+  local src; src=$(grep -hE '^[[:space:]]*(server|pool)[[:space:]]' /etc/chrony.conf /etc/chrony.d/*.conf 2>/dev/null | awk '{print $2}')
+  [[ -n $src ]] || { _rec "grep -E '^(server|pool)' /etc/chrony.conf /etc/chrony.d/*.conf" "no server or pool line"; return 1; }
+  grep -Evq "^($1)\$" <<<"$src" && { _rec "grep -E '^(server|pool)' /etc/chrony.conf /etc/chrony.d/*.conf" "other time sources are configured: $(paste -sd' ' <<<"$src")"; return 1; }
+  return 0
 }
 # PH2026B2 Mock 2 — grader checks (built into rhcsa9-mock-2-grade.sh by ../build.sh)
 PAPER="PH2026B2 Mock 2"
@@ -415,9 +440,9 @@ t10() {
   need svc_persisted crond
 }
 
-task 11 CON node1 "rootless cafe from a self-built localhost/cafe-web:1.0 (Containerfile, CAFE_ENV=mock2): /srv/cafe -> docroot, port 28282, starts at boot"
+task 11 CON node1 "rootless cafe, owned by barista, from a self-built localhost/cafe-web:1.0 (Containerfile, CAFE_ENV=mock2): /srv/cafe -> docroot, port 28282, starts at boot"
 t11() {
-  must find_cuser cafe || return
+  must use_cuser barista cafe || return
   need expect_ok "test -s ~$CUSER/cafe/Containerfile"
   need expect_match "$(asu 'podman image inspect localhost/cafe-web:1.0 --format "{{.Config.Env}}"')" 'CAFE_ENV=mock2'
   need expect_match "$(asu 'podman inspect cafe --format {{.ImageName}}')" '^localhost/cafe-web:1\.0$'
@@ -491,11 +516,12 @@ t17() {
 }
 requires 17 3
 
-task 18 SEC node2 "gatekeeper exists on node2 and logs in to node1 as gatekeeper by key, no password"
+task 18 SEC node2 "gatekeeper exists on node2 and logs in to workhorse (node1) as gatekeeper by key, no password"
 t18() {
   must expect_ok "id gatekeeper" || return
-  need key_login_ok gatekeeper "$NODE1_IP"
+  need key_login_ok gatekeeper workhorse
 }
+requires 18 22
 
 task 19 SEC node1 "sshd: no password/keyboard-interactive auth, no root login, only group sshlogin allowed"
 t19() {
@@ -509,15 +535,50 @@ t19() {
   need svc_persisted sshd
 }
 
-task 20 FS node1 "autofs: /shares/reports rw and /shares/archive read-only from $NODE2_IP:/exports, not fstab (needs node2 task 5)"
+task 20 FS node1 "autofs: /shares/reports rw and /shares/archive read-only from storage:/exports, not fstab (needs node2 task 5)"
 t20() {
   must expect_ok "rpm -q autofs" || return
   need svc_persisted autofs
-  need autofs_maps_to /shares/reports "$NODE2_IP:/exports/reports"
-  need autofs_maps_to /shares/archive "$NODE2_IP:/exports/archive"
+  need autofs_maps_to /shares/reports "storage(\.lab\.example)?:/exports/reports"
+  need autofs_maps_to /shares/archive "storage(\.lab\.example)?:/exports/archive"
   need autofs_has_opt /shares/archive ro
   need expect_ok "! findmnt --fstab -n /shares/reports && ! findmnt --fstab -n /shares/archive"
 }
-requires 20 3
+requires 20 3 21
+
+task 21 NET node1 "/etc/hosts on node1: storage and storage.lab.example -> node2"
+t21() {
+  need hosts_entry storage "$NODE2_IP"
+  need hosts_entry storage.lab.example "$NODE2_IP"
+}
+
+task 22 NET node2 "/etc/hosts on node2: workhorse and workhorse.lab.example -> node1"
+t22() {
+  need hosts_entry workhorse "$NODE1_IP"
+  need hosts_entry workhorse.lab.example "$NODE1_IP"
+}
+
+task 23 NET node2 "chrony serves time to node1's subnet; at boot; firewall allows NTP"
+t23() {
+  need svc_persisted chronyd
+  need expect_match "grep -hE '^[[:space:]]*allow' /etc/chrony.conf /etc/chrony.d/*.conf 2>/dev/null" 'allow'
+  need fw_has ntp 123/udp
+}
+
+task 24 NET node1 "chrony syncs only from storage (node2); at boot"
+t24() {
+  need svc_persisted chronyd
+  need chrony_only_from "storage|storage\.lab\.example|${NODE2_IP//./\\.}"
+}
+requires 24 21
+
+task 25 SEC node1 "SELinux boolean httpd_can_network_connect on, persistently"
+t25() {
+  need expect_match "getsebool httpd_can_network_connect" '--> on$'
+  need expect_match "semanage boolean -l -C 2>/dev/null | grep -w httpd_can_network_connect" '\(on[[:space:]]*,[[:space:]]*on\)'
+}
+
+task 26 USR node1 "new users get a 45-day maximum password age (login.defs)"
+t26() { need expect "awk '\$1==\"PASS_MAX_DAYS\"{print \$2}' /etc/login.defs" 45; }
 
 run_all; report

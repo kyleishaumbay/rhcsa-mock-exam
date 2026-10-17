@@ -6,7 +6,7 @@ NODE1_IP=${NODE1_IP:-192.168.56.101}
 NODE2_IP=${NODE2_IP:-192.168.56.102}
 XDISK=${XDISK:-sdb}        # 5 GiB disk for the GPT partitions (task 6)
 THINDISK=${THINDISK:-sdc}  # 5 GiB disk for the thin pool (task 15)
-SWAPDISK=${SWAPDISK:-sdd}  # disk for swap, 1 GiB or more (task 13)
+SWAPDISK=${SWAPDISK:-sdd}  # disk for the swap partition, 2 GiB or more (task 13)
 # -------------------------------------------------------------------------------------
 hosts node2=root@$NODE2_IP
 node_by_ip
@@ -18,12 +18,8 @@ t1() { need root_pw_is 'practice-root-101'; }
 task 2 OPS node1 "root password reset to practice-root-101"
 t2() { need root_pw_is 'practice-root-101'; }
 
-task 3 DEP node1 "ISO mounted persistently at /mnt/rhel9-iso; BaseOS repo from the mounted ISO"
-t3() {
-  need mount_persisted /mnt/rhel9-iso
-  need expect_ok "test -d /mnt/rhel9-iso/BaseOS/repodata"
-  need expect_match "grep -rhE '^\s*baseurl\s*=' /etc/yum.repos.d/" 'file:///mnt/rhel9-iso/BaseOS/?$'
-}
+task 3 DEP node1 "ISO mounted persistently at /mnt/rhel9-iso; BaseOS and AppStream repos from it"
+t3() { iso_repos /mnt/rhel9-iso; }
 
 task 4 DEP node2 "ISO mounted persistently at /mnt/rhel9-iso; packages install from it (BaseOS repo)"
 t4() { iso_repo_baseos /mnt/rhel9-iso; }
@@ -59,12 +55,12 @@ t7() {
 }
 requires 7 6
 
-task 8 USR node1 "group tin may sudo only: cat /var/log/messages"
+task 8 USR node1 "group tin may sudo only: tail /var/log/secure"
 t8() {
   must expect_ok "id biscuit" || return
   need expect_ok "visudo -c"
   need expect_ok "grep -rEqs '^\s*%tin\s' /etc/sudoers /etc/sudoers.d/"
-  need expect_match "sudo -l -U biscuit" '/usr/bin/cat /var/log/messages\s*$'
+  need expect_match "sudo -l -U biscuit" '/usr/bin/tail /var/log/secure\s*$'
   need expect_ok "! sudo -l -U biscuit | grep -Eq '\)\s*(NOPASSWD:\s*)?ALL\s*$'"
 }
 requires 8 7
@@ -73,19 +69,19 @@ task 9 FS node1 "/larder: group tin, set-GID + sticky, group rwx"
 t9() { need expect_match "stat -c '%a %G' /larder" '^3[0-7]7[0-7] tin$'; }
 requires 9 7
 
-task 10 SH node1 "/root/load-report.sh writes uptime to /root/load.log; root cron daily 03:15"
+task 10 SH node1 "/root/mem-report.sh writes 'free -h' to /root/memory.log; root cron daily 04:45"
 t10() {
-  must expect_ok "test -x /root/load-report.sh" || return
-  need expect_ok "bash -n /root/load-report.sh"
-  need expect_file_has /root/load-report.sh 'uptime'
-  need expect_file_has /root/load-report.sh '/root/load\.log'
-  need cron_has '^\s*15\s+0?3\s+\*\s+\*\s+\*\s+(root\s+)?.*(/root/)?load-report\.sh'
+  must expect_ok "test -x /root/mem-report.sh" || return
+  need expect_ok "bash -n /root/mem-report.sh"
+  need expect_file_has /root/mem-report.sh '\bfree\b.*-h'
+  need expect_file_has /root/mem-report.sh '/root/memory\.log'
+  need cron_has '^\s*45\s+0?4\s+\*\s+\*\s+\*\s+(root\s+)?.*(/root/)?mem-report\.sh'
   need svc_persisted crond
 }
 
-task 11 CON node1 "rootless webfront (ubi9/httpd-24): /srv/site -> docroot, host port 35565, starts at boot"
+task 11 CON node1 "rootless webfront owned by chef (ubi9/httpd-24): /srv/site -> docroot, host port 35565, starts at boot"
 t11() {
-  must find_cuser webfront || return
+  must use_cuser chef webfront || return
   need expect_match "$(asu 'podman inspect webfront --format {{.ImageName}}')" 'ubi9/httpd-24'
   need expect_match "$(asu 'podman port webfront')" ':35565$'
   need expect_match "$(asu 'podman inspect webfront --format "{{range .Mounts}}{{.Source}}:{{.Destination}} {{end}}"')" '(^| )/srv/site/?:/var/www/html/?( |$)'
@@ -104,12 +100,13 @@ t12() {
   need expect_ok "! grubby --info=ALL 2>/dev/null | grep -E '^args=' | grep -Eqw 'enforcing=0|selinux=0'"
 }
 
-task 13 STOR node1 "1 GiB swap on $SWAPDISK, active and persistent"
+task 13 STOR node1 "1 GiB swap partition on $SWAPDISK, active and persistent"
 t13() {
   local d; d=$(swap_dev_on_disk "$SWAPDISK" | head -1)
   [[ -n $d ]] || { _rec "cat /proc/swaps" "no active swap on /dev/$SWAPDISK"; _fail; return; }
   need swap_persisted "$d"
-  need expect_ok "test \$(( \$(lsblk -bdno SIZE $d) / 1048576 )) -ge 900"
+  need expect "lsblk -no TYPE $d" part
+  need expect_ok "s=\$(( \$(lsblk -bdno SIZE $d) / 1048576 )); test \$s -ge 950 -a \$s -le 1100"
 }
 
 task 14 OPS node1 "systemd journal persistent across reboots"
@@ -171,5 +168,40 @@ t20() {
   need expect_ok "! findmnt --fstab -n /remote/projects && ! findmnt --fstab -n /remote/docs"
 }
 requires 20 3
+
+task 21 NET node1 "/etc/hosts on node1: node1, node1.lab.example, node2, node2.lab.example"
+t21() {
+  need hosts_entry node1 "$NODE1_IP"
+  need hosts_entry node1.lab.example "$NODE1_IP"
+  need hosts_entry node2 "$NODE2_IP"
+  need hosts_entry node2.lab.example "$NODE2_IP"
+}
+
+task 22 NET node2 "/etc/hosts on node2: node1, node1.lab.example, node2, node2.lab.example"
+t22() {
+  need hosts_entry node1 "$NODE1_IP"
+  need hosts_entry node1.lab.example "$NODE1_IP"
+  need hosts_entry node2 "$NODE2_IP"
+  need hosts_entry node2.lab.example "$NODE2_IP"
+}
+
+task 23 NET node1 "static hostname node1.lab.example"
+t23() { need expect "hostnamectl --static" node1.lab.example; }
+
+task 24 TOOLS node1 "/root/etc-backup.tar.gz: gzip-compressed tar archive of /etc"
+t24() {
+  must expect_ok "test -s /root/etc-backup.tar.gz" || return
+  need expect_ok "gzip -t /root/etc-backup.tar.gz"
+  need expect_match "tar -tzf /root/etc-backup.tar.gz 2>/dev/null" '^/?etc/passwd$'
+}
+
+task 25 TOOLS node1 "/root/ssh-lines.txt: every line of /etc/services containing 'ssh', in order"
+t25() { need expect_ok "diff -q <(grep ssh /etc/services) /root/ssh-lines.txt"; }
+
+task 26 OPS node1 "tuned profile throughput-performance, active and persistent"
+t26() {
+  need svc_persisted tuned
+  need expect_match "tuned-adm active" 'throughput-performance$'
+}
 
 run_all; report

@@ -202,7 +202,8 @@ report() {   # Red Hat-style per-objective breakdown; equal weight per task, sca
   done
   (( graded == 0 )) && { echo "No tasks graded."; return; }
   local score=$(( 300 * passed / graded ))
-  echo; echo "Score ($scope, equal weights): $score / 300   pass mark $PASS_MARK"
+  echo; echo "Tasks passed ($scope): $passed / $graded"
+  echo "Score ($scope, equal weights): $score / 300   pass mark $PASS_MARK"
   local failed=(); for t in "${TASKS[@]}"; do [[ ${T_RES[$t]} == FAIL ]] && failed+=("$t"); done
   echo "Failed tasks: ${failed[*]:-none}"
   echo "Real exam weights are not published; this is a readiness signal, not a prediction."

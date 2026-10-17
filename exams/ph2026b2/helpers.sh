@@ -64,6 +64,12 @@ find_cuser() {        # <container> — the lingering rootless user running it
   done
   _rec "podman ps, as each user in /var/lib/systemd/linger/" "no lingering user has a running container named $1"; return 1
 }
+use_cuser() {         # <user> <container> — the named user exists, lingers and runs that container
+  CUSER=$1
+  expect_ok "id $1" || { _rec "id $1" "user $1 does not exist"; return 1; }
+  runuser -l "$1" -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) podman ps --format "{{.Names}}"' 2>/dev/null | grep -qx "$2" && return 0
+  _rec "$(asu 'podman ps')" "$1 has no running container named $2 (a container run by root does not count)"; return 1
+}
 asu() { echo "runuser -l $CUSER -c 'XDG_RUNTIME_DIR=/run/user/\$(id -u) $1'"; }
 user_unit_for() {     # <container> — its systemd --user service is active and enabled/generated
   local u; u=$(bash -c "$(asu 'systemctl --user list-units --all --type=service --no-legend --plain')" 2>/dev/null | awk '{print $1}' | grep -m1 "$1")
@@ -104,10 +110,24 @@ node_by_ip() {        # which node this is, from its IP (lab hostnames can be an
   [[ -n $NODE ]] && return 0
   ip -4 -o addr 2>/dev/null | grep -q " $NODE1_IP/" && THIS_NODE=node1
   ip -4 -o addr 2>/dev/null | grep -q " $NODE2_IP/" && THIS_NODE=node2
-  return 0
+  [[ $THIS_NODE == node1 || $THIS_NODE == node2 ]] && return 0
+  echo "This machine has neither $NODE1_IP (node1) nor $NODE2_IP (node2)."
+  echo "Run it with your lab's IPs:  NODE1_IP=<node1-IP> NODE2_IP=<node2-IP> bash ${_SELF##*/}"
+  exit 2
 }
 iso_repo_baseos() {   # <mountpoint> — ISO mounted there at boot; a BaseOS repo from it
   need mount_persisted "$1"
   need expect_ok "test -d $1/BaseOS/repodata"
   need expect_match "grep -rhE '^\s*baseurl\s*=' /etc/yum.repos.d/" "file://$1/BaseOS/?\$"
+}
+hosts_entry() {       # <name> <ip> — the name resolves to ip from /etc/hosts (not DNS)
+  expect_ok "grep -Eq '^[[:space:]]*$2[[:space:]](.*[[:space:]])?$1([[:space:]]|\$)' /etc/hosts" \
+    || { _rec "grep '$1' /etc/hosts" "/etc/hosts has no line mapping $1 to $2"; return 1; }
+  expect "getent hosts $1 | awk '{print \$1}' | head -1" "$2"
+}
+chrony_only_from() {  # <regex> — every server/pool line points at a source matching it, and there is one
+  local src; src=$(grep -hE '^[[:space:]]*(server|pool)[[:space:]]' /etc/chrony.conf /etc/chrony.d/*.conf 2>/dev/null | awk '{print $2}')
+  [[ -n $src ]] || { _rec "grep -E '^(server|pool)' /etc/chrony.conf /etc/chrony.d/*.conf" "no server or pool line"; return 1; }
+  grep -Evq "^($1)\$" <<<"$src" && { _rec "grep -E '^(server|pool)' /etc/chrony.conf /etc/chrony.d/*.conf" "other time sources are configured: $(paste -sd' ' <<<"$src")"; return 1; }
+  return 0
 }

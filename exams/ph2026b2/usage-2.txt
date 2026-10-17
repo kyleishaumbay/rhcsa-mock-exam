@@ -1,0 +1,4 @@
+# PH2026B2 Mock 2 grader. Run as root on EACH node, after rebooting both:
+#   NODE1_IP=<node1-IP> NODE2_IP=<node2-IP> bash grade.sh
+# Read-only: it changes nothing. Full instructions: Appendix C of the exam paper.
+# Don't read this file before sitting the exam: the checks give the answers away.

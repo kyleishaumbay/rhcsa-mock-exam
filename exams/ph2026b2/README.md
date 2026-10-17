@@ -1,6 +1,6 @@
 # PH2026B2 practice exams
 
-Two RHEL 9 mock exams built only from PH2026B2 Practical Exams 1–3. Questions that appeared in
+Two RHEL 9 mock exams built from PH2026B2 Practical Exams 1–3, plus six small extra tasks each. Questions that appeared in
 more than one paper are merged into one task.
 
 - **Mock 1** follows every source question with the same logic, using different names and values.
@@ -44,7 +44,20 @@ block that plants two faults to find. Repositories always use `gpgcheck=0`.
 | httpd at boot, index page, firewall, curl from the other node (PE3) | 17 | 17 |
 | User on both nodes, key-based SSH from node2 (PE3) | 18 | 18 |
 | SSH hardening: password and keyboard-interactive off, one user allowed (PE3) | 19 | 19 |
-| autofs for two NFS shares by IP, not fstab (PE3) | 20 | 20 |
+| autofs for two NFS shares by IP, not fstab (PE3) | 20 | 20 (by hostname) |
+
+**Extras, not in the PE papers,** for more practice at the same level:
+
+| Extra | Mock 1 | Mock 2 |
+|---|---|---|
+| Name resolution in `/etc/hosts`, both nodes | 21, 22 | 21, 22 (aliases used by tasks 18 and 20) |
+| Static hostname | 23 | — |
+| gzip tar archive | 24 | — |
+| grep lines into a file | 25 | — |
+| tuned profile | 26 | — |
+| chrony time server and client | — | 23, 24 |
+| Persistent SELinux boolean | — | 25 |
+| Default password age for new users | — | 26 |
 
 The two swap tasks are kept apart because they build swap differently: a disk or partition
 versus an LV sized in extents.
