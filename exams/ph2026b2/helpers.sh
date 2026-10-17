@@ -89,14 +89,25 @@ iso_repos() {         # <mountpoint> — ISO mounted there at boot; BaseOS + App
   need expect_match "grep -rhE '^\s*baseurl\s*=' /etc/yum.repos.d/" "file://$1/BaseOS/?\$"
   need expect_match "grep -rhE '^\s*baseurl\s*=' /etc/yum.repos.d/" "file://$1/AppStream/?\$"
 }
-nfs_export_is() {     # <path> <rw|ro> — exported now and in /etc/exports(.d), only to NODE1_IP, with that mode
+nfs_export_is() {     # <path> <rw|ro> [any] — exported now and in /etc/exports(.d) with that mode; only to NODE1_IP unless "any"
   local live   # one path may span several lines (one per client, or options on a continuation line)
   live=$(exportfs -s 2>/dev/null | awk -v p="$1" '/^\//{cur=$1; $1=""} cur==p{print}' | paste -sd' ')
   [[ -n $live ]] || { _rec "exportfs -s" "$1 is not exported"; return 1; }
   grep -rhsEq "^\s*$1\s" /etc/exports /etc/exports.d/*.exports \
     || { _rec "grep $1 /etc/exports /etc/exports.d/*.exports" "$1 is exported now but not in /etc/exports or /etc/exports.d"; return 1; }
-  [[ $(grep -oE '[^ ()]+\(' <<<"$live" | tr -d '(' | sort -u | paste -sd' ') =~ ^$NODE1_IP(/32)?$ ]] \
+  [[ $3 == any || $(grep -oE '[^ ()]+\(' <<<"$live" | tr -d '(' | sort -u | paste -sd' ') =~ ^$NODE1_IP(/32)?$ ]] \
     || { _rec "exportfs -s" "$1 is exported to '$(grep -oE '[^ ()]+\(' <<<"$live" | tr -d '(' | paste -sd' ')', not only $NODE1_IP"; return 1; }
   grep -Eq "\(([^)]*,)?$2(,|\))" <<<"$live" && return 0
   _rec "exportfs -s" "$1 is not exported $2 (got: '${live# }')"; return 1
+}
+node_by_ip() {        # which node this is, from its IP (lab hostnames can be anything)
+  [[ -n $NODE ]] && return 0
+  ip -4 -o addr 2>/dev/null | grep -q " $NODE1_IP/" && THIS_NODE=node1
+  ip -4 -o addr 2>/dev/null | grep -q " $NODE2_IP/" && THIS_NODE=node2
+  return 0
+}
+iso_repo_baseos() {   # <mountpoint> — ISO mounted there at boot; a BaseOS repo from it
+  need mount_persisted "$1"
+  need expect_ok "test -d $1/BaseOS/repodata"
+  need expect_match "grep -rhE '^\s*baseurl\s*=' /etc/yum.repos.d/" "file://$1/BaseOS/?\$"
 }

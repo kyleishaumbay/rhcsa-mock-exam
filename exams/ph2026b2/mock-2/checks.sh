@@ -9,6 +9,7 @@ THINDISK=${THINDISK:-sdc}  # 5 GiB disk for the thin pool (task 13)
 SWAPDISK=${SWAPDISK:-sdd}  # 1 GiB disk for swap (task 11)
 # -------------------------------------------------------------------------------------
 hosts node2=root@$NODE2_IP
+node_by_ip
 
 task 1 OPS node2 "root password reset to practice-root-202"
 t1() { need root_pw_is 'practice-root-202'; }
